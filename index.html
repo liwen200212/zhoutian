@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>周天 · 二十四节气可计算视觉图谱</title>
+<meta name="description" content="《周天》是一件可计算的二十四节气交互视觉作品。黄道环即时间轴，三地昼长光带与生成节气光纹把太阳位置、赤纬和交节时刻转成可观看、可验证的年度图像。">
+<meta name="theme-color" content="#080b10">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23080b10'/%3E%3Crect x='9' y='9' width='46' height='46' fill='none' stroke='%23c1502f'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='28' fill='%23c1502f' font-family='serif'%3E周%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-pal="ink">
+
+<a class="skip-link" href="#stage">跳到观象台</a>
+<div class="cursor" id="cursor" aria-hidden="true"><span></span></div>
+
+<div class="intro" id="intro">
+  <div class="intro-sky" aria-hidden="true">
+    <div class="intro-orbit intro-orbit-a"></div>
+    <div class="intro-orbit intro-orbit-b"></div>
+    <div class="intro-orbit intro-orbit-c"></div>
+    <span class="orbit-sun"></span>
+    <span class="orbit-star orbit-star-a"></span>
+    <span class="orbit-star orbit-star-b"></span>
+    <span class="orbit-star orbit-star-c"></span>
+    <span class="orbit-star orbit-star-d"></span>
+  </div>
+  <div class="intro-grid">
+    <div class="intro-rule"></div>
+    <div class="intro-main">
+      <div class="intro-seal">周天</div>
+      <h1 class="intro-title">
+        <span style="--i:0">二</span><span style="--i:1">十</span><span style="--i:2">四</span><span style="--i:3">节</span><span style="--i:4">气</span>
+      </h1>
+      <p class="intro-lede">一部随太阳运行的节气视觉图谱。</p>
+      <div class="intro-proof" aria-hidden="true">
+        <span>赤道</span><i></i><b>23.44°</b><i></i><span>黄道</span>
+      </div>
+      <p class="intro-category">数字艺术与可视化设计类 · 可运行网页作品</p>
+      <p class="intro-tags"><span>跨纬度数据</span><span>生成视觉</span><span>数字人文</span></p>
+    </div>
+    <div class="intro-foot">
+      <button class="enter" id="enter" type="button">
+        <span class="enter-txt">入天 · 开始观象</span>
+        <span class="enter-line"></span>
+      </button>
+      <p class="intro-meta">拖拽环视 <span>／</span> 滚轮缩放 <span>／</span> 点击刻度</p>
+    </div>
+    <div class="intro-rule"></div>
+  </div>
+  <p class="intro-date">岁次丙午<br>二〇二六</p>
+  <p class="intro-aside">仰观天象 · 俯察时令</p>
+</div>
+
+<main class="stage" id="stage">
+  <canvas id="scene" role="img"
+    aria-label="实时投影天球：赤道环、子午环与倾斜二十三度的黄道环，二十四个节气刻度分布在黄道上，太阳沿黄道运行"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vig" aria-hidden="true"></div>
+
+  <header class="top">
+    <div class="brand">
+      <span class="brand-mark">周天</span>
+      <span class="brand-sub">二十四节气<br>可计算视觉图谱</span>
+    </div>
+    <div class="tools">
+      <button class="tool tool-play" id="play" type="button" aria-pressed="false"><span class="play-icon" aria-hidden="true"></span><span id="playText">播放</span></button>
+      <div class="group" role="group" aria-label="切换色谱">
+        <button class="tool pal" data-pal="ink" data-short="墨" type="button" aria-label="切换墨夜色谱" aria-pressed="true">墨夜</button>
+        <button class="tool pal" data-pal="paper" data-short="纸" type="button" aria-label="切换宣纸色谱" aria-pressed="false">宣纸</button>
+        <button class="tool pal" data-pal="qing" data-short="青" type="button" aria-label="切换青绿色谱" aria-pressed="false">青绿</button>
+      </div>
+      <div class="tool-divider" aria-hidden="true"></div>
+      <button class="tool" id="togglePanel" type="button" aria-expanded="true">释文</button>
+      <button class="tool" id="tableOpen" type="button" aria-haspopup="dialog">时序</button>
+      <button class="tool" id="tourOpen" type="button">导览</button>
+      <button class="tool tool-focus" id="immersive" type="button" aria-label="进入沉浸模式，隐藏界面" title="沉浸模式（H）">
+        <span aria-hidden="true">全</span><span class="focus-label">屏</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="mobile-dock" aria-label="快速操作">
+    <button id="mobilePanel" type="button" aria-expanded="true">释文</button>
+    <button id="mobileTable" type="button" aria-haspopup="dialog">岁时历</button>
+    <button id="mobileTour" type="button">导览</button>
+    <button id="mobileFocus" type="button">沉浸</button>
+  </nav>
+
+  <button class="now" id="nowBtn" type="button" aria-label="查看当前节气">
+    <span class="now-pulse" aria-hidden="true"></span>
+    <span class="now-kicker">今日</span>
+    <b id="nowTerm">寒露</b>
+    <span id="nowNext">距霜降 3 天</span>
+    <span class="now-arrow" aria-hidden="true">↗</span>
+  </button>
+
+  <section class="guide" id="guide" role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="guideTitle" aria-describedby="guideDesc">
+    <button class="guide-close" id="guideClose" type="button" aria-label="关闭体验引导">×</button>
+    <p class="eyebrow">初见 <span class="eyebrow-dot">·</span> 三十秒</p>
+    <h2 id="guideTitle">沿着太阳，看见一年</h2>
+    <p class="guide-desc" id="guideDesc">黄道环上的每一格都是一个节气。位置、天光与数据会一起变化，让抽象历法成为一幅可以行走的年度图像。</p>
+    <ol class="guide-steps">
+      <li><b>01</b><span><strong>左右拖动</strong>环视天球</span></li>
+      <li><b>02</b><span><strong>点击</strong>刻度查看节气</span></li>
+      <li><b>03</b><span><strong>播放</strong>走完一年</span></li>
+    </ol>
+    <div class="guide-actions">
+      <button class="guide-start" id="guideStart" type="button">60秒看作品</button>
+      <button class="guide-skip" id="guideSkip" type="button">自由探索</button>
+    </div>
+  </section>
+
+  <div class="hero">
+    <p class="eyebrow">
+      <span class="eyebrow-idx" id="idx">04</span>
+      <span class="eyebrow-sep">／</span><span class="eyebrow-total">24</span>
+      <span class="eyebrow-dot">·</span>太阳黄经 <span id="lam">0</span>°
+    </p>
+    <h1 class="term" id="termName" aria-live="polite">春分</h1>
+    <p class="term-date" id="termDate"></p>
+    <p class="gloss" id="gloss" aria-live="polite"></p>
+  </div>
+
+  <dl class="metrics" id="metrics">
+    <div class="metric">
+      <dt>直射纬度</dt>
+      <dd id="mDec">北纬 0.0°</dd>
+    </div>
+    <div class="metric">
+      <dt>北京几何昼长</dt>
+      <dd id="mDay">12.0 小时</dd>
+    </div>
+    <div class="metric metric-wide">
+      <dt>物候</dt>
+      <dd id="mHou"></dd>
+    </div>
+  </dl>
+
+  <aside class="panel" id="panel" aria-live="polite">
+    <div class="panel-head">
+      <span>释文 <i id="panelNo">04</i></span>
+      <span id="panelDate"></span>
+    </div>
+    <section class="layer" data-no="01">
+      <h2>怎么来的</h2>
+      <p id="pOrigin"></p>
+      <details class="glossary">
+        <summary>黄经、赤纬、昼长是什么？</summary>
+        <p><b>太阳视黄经</b>是从地球看太阳在黄道上的位置，每走 15° 划分一个节气。</p>
+        <p><b>赤纬</b>是太阳直射点相对赤道的南北位置。</p>
+        <p><b>昼长</b>是根据赤纬和观测纬度算出的白昼小时数，这里以北京为例。</p>
+      </details>
+      <p class="layer-cite">计算 · 太阳视黄经 / 赤纬 / 观测纬度</p>
+    </section>
+    <section class="layer" data-no="02">
+      <h2>天气有什么变化</h2>
+      <p id="pWeather"></p>
+      <p class="dim" id="pHou"></p>
+      <p class="layer-cite">气候与物候 · 综合整理，地域差异较大</p>
+    </section>
+    <section class="layer" data-no="03">
+      <h2>该做什么</h2>
+      <p id="pWork"></p>
+      <p class="dim" id="pFood"></p>
+      <p class="layer-cite">农事与食俗 · 民俗资料综述，不作生活指导</p>
+    </section>
+    <section class="layer" data-no="04">
+      <h2>历史渊源</h2>
+      <p id="pSource"></p>
+      <p class="layer-cite">释义与史事 · 古籍原文意译及通行解释，不作逐字引文</p>
+    </section>
+  </aside>
+
+  <button class="panel-more" id="panelMore" type="button" aria-label="向下滚动查看完整释文">
+    <span>继续阅读</span><b aria-hidden="true">↓</b>
+  </button>
+
+  <div class="ruler" id="timeline" role="group" aria-label="二十四节气时间轴"></div>
+
+  <nav class="mobile-term-nav" aria-label="切换节气">
+    <button id="mobilePrev" type="button" aria-label="上一个节气">← 上一节气</button>
+    <button id="mobileCurrent" type="button" aria-label="回到天球">春分</button>
+    <button id="mobileNext" type="button" aria-label="下一个节气">下一节气 →</button>
+  </nav>
+
+  <a class="scroll-cue" href="#atlas">
+    <span>进入节气图谱</span><i aria-hidden="true"></i>
+  </a>
+
+  <button class="focus-exit" id="focusExit" type="button" aria-hidden="true">轻触退出沉浸</button>
+</main>
+
+<section class="atlas" id="atlas">
+  <div class="atlas-top reveal">
+    <div>
+      <p class="eyebrow">图谱 <span class="eyebrow-dot">·</span> 02</p>
+      <h2 class="display">一年不是十二个月<br>而是二十四次太阳折返</h2>
+    </div>
+    <div class="atlas-intro">
+      <p class="body-text">
+        当视角从单一天象退到全年，节气显露出另一层结构：太阳直射点南北往返，同一时刻的昼长又随纬度展开。
+        在哈尔滨、北京与广州之间，一条节气折线变成三束彼此拉开的光带。
+      </p>
+      <p class="atlas-note">数据映射：横轴为节气序列，纵轴为几何昼长；三地共用一套太阳赤纬。城市采用代表性纬度，昼长按几何地平线公式计算。</p>
+    </div>
+  </div>
+
+  <div class="atlas-board reveal" style="--d:.08s">
+    <div class="atlas-board-head">
+      <div>
+        <span class="atlas-fig-no">FIG. 01</span>
+        <b>三地昼长 · 45.8°—23.1°N</b>
+      </div>
+      <div class="atlas-nav" role="group" aria-label="切换图谱中的节气">
+        <button id="atlasPrev" type="button" aria-label="上一个节气">←</button>
+        <span id="atlasIndex">01 / 24</span>
+        <button id="atlasNext" type="button" aria-label="下一个节气">→</button>
+      </div>
+    </div>
+    <div class="atlas-latitudes" role="group" aria-label="切换显示的纬度对照">
+      <span class="atlas-lat-title">纬度切片</span>
+      <button class="lat-toggle" type="button" data-lat="45.8" aria-pressed="true">
+        <i aria-hidden="true"></i><b>哈尔滨</b><em>45.8°N</em>
+      </button>
+      <button class="lat-toggle" type="button" data-lat="39.9" aria-pressed="true">
+        <i aria-hidden="true"></i><b>北京</b><em>39.9°N</em>
+      </button>
+      <button class="lat-toggle" type="button" data-lat="23.1" aria-pressed="true">
+        <i aria-hidden="true"></i><b>广州</b><em>23.1°N</em>
+      </button>
+    </div>
+    <figure class="atlas-figure">
+      <canvas id="atlasCanvas" role="img" aria-label="哈尔滨、北京、广州二十四节气几何昼长对照曲线，当前高亮立春"></canvas>
+      <figcaption>
+        <span>几何昼长 / 小时</span>
+        <span>哈 / 京 / 穗共享同一太阳赤纬</span>
+        <span>不含大气折射与太阳视半径</span>
+      </figcaption>
+    </figure>
+    <div class="atlas-readout">
+      <div class="atlas-term-cell">
+        <div class="atlas-term-copy">
+          <span>当前节点 · 生成光纹</span>
+          <b id="atlasTerm">立春</b>
+        </div>
+        <canvas id="glyphCanvas" role="img" aria-label="立春节气光纹"></canvas>
+      </div>
+      <div>
+        <span>太阳视黄经</span>
+        <b id="atlasLam">315°</b>
+      </div>
+      <div>
+        <span>太阳赤纬</span>
+        <b id="atlasDec">南纬 16.3°</b>
+      </div>
+      <div>
+        <span>三地几何昼长</span>
+        <b id="atlasDay">9.9 / 10.1 / 11.1 h</b>
+      </div>
+      <div>
+        <span>交节时刻</span>
+        <b id="atlasTime">02.04 · 03:55</b>
+      </div>
+    </div>
+    <div class="glyph-index">
+      <div class="glyph-index-head">
+        <div><span class="atlas-fig-no">FIG. 02</span><b>二十四节气光纹谱</b></div>
+        <em>点击任一光纹，切换图谱节点</em>
+      </div>
+      <div class="glyph-grid" id="glyphGrid" role="group" aria-label="二十四节气光纹谱"></div>
+    </div>
+  </div>
+
+  <div class="atlas-mapping reveal">
+    <article>
+      <span>01 / 位置</span>
+      <h3>黄经成为时间刻度</h3>
+      <p>24 个节点不是均匀日历，而是太阳沿黄道每前进 15° 留下的空间证据。</p>
+    </article>
+    <article>
+      <span>02 / 形态</span>
+      <h3>天象成为图形语法</h3>
+      <p>三城光带、赤纬读数与交节时刻相互校验；黄经、赤纬和昼长再生成每站独有的节气光纹。</p>
+    </article>
+    <article>
+      <span>03 / 经验</span>
+      <h3>观看成为参与</h3>
+      <p>旋转天球、切换图谱节点、改变地轴倾角，观众用动作重走节气形成的逻辑。</p>
+    </article>
+  </div>
+</section>
+
+<section class="tour" id="tour" role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="tourTitle">
+  <div class="tour-top">
+    <span>评委导览 <i id="tourStepNo">01 / 05</i></span>
+    <button id="tourClose" type="button" aria-label="退出作品导览">退出导览 ×</button>
+  </div>
+  <div class="tour-track" aria-hidden="true"><i id="tourProgress"></i></div>
+  <div class="tour-copy">
+    <p class="eyebrow">周天 <span class="eyebrow-dot">·</span> 一分钟</p>
+    <h2 id="tourTitle">黄道就是时间轴</h2>
+    <p id="tourText">二十四节气不是一组孤立的卡片，而是太阳沿黄道每走 15° 留下的二十四格。</p>
+  </div>
+  <div class="tour-controls">
+    <button id="tourPrev" type="button">上一幕</button>
+    <button id="tourNext" type="button">下一幕</button>
+  </div>
+</section>
+
+<section class="lab" id="lab">
+  <div class="lab-grid">
+    <div class="lab-copy reveal">
+      <p class="eyebrow">反事实 <span class="eyebrow-dot">·</span> 03</p>
+      <h2 class="display">如果地轴<br>不倾斜</h2>
+      <p class="body-text">
+        地轴约 23.44° 的倾角，使太阳直射点在南北回归线之间移动，也让同一地点的昼长随季节改变。
+        二十四节气建立在这一天文节律之上。把倾角拉平，昼长曲线被抹平，季节差异也就随之消失。
+      </p>
+      <div class="lab-ctl">
+        <div class="lab-label">
+          <span>地轴倾角</span>
+          <b id="tiltVal">23.44°</b>
+        </div>
+        <input type="range" id="tilt" min="0" max="45" step="0.01" value="23.44" aria-label="地轴倾角">
+        <div class="lab-row">
+          <button class="tool" id="tiltReset" type="button">回到 23.44°</button>
+          <button class="tool" id="tiltZero" type="button">拉平到 0°</button>
+        </div>
+      </div>
+      <p class="lab-note" id="tiltNote"></p>
+    </div>
+    <figure class="lab-fig reveal" style="--d:.12s">
+      <canvas id="labCanvas" role="img"
+        aria-label="北京一年的昼长曲线：横轴为二十四个节气，纵轴为昼长小时数"></canvas>
+      <figcaption>北京（北纬 39.9°）一年昼长变化 · 几何昼长</figcaption>
+    </figure>
+  </div>
+  <div class="gnomon-grid">
+    <div class="gnomon-copy reveal">
+      <p class="eyebrow">古法 <span class="eyebrow-dot">·</span> 测影</p>
+      <h2 class="display">看见一年中<br>最长的影子</h2>
+      <p class="body-text">
+        正午立一根表，记录影子的长短。太阳越高，影子越短；太阳越低，影子越长。
+        古人比较一年里的最短影与最长影，由此定位夏至和冬至，再逐步细分出二十四节气。
+      </p>
+      <div class="gnomon-readout">
+        <div>
+          <span>当前观测</span>
+          <b id="gnomonTerm">立春</b>
+        </div>
+        <div>
+          <span>正午太阳高度</span>
+          <b id="gnomonAlt">50.1°</b>
+        </div>
+        <div>
+          <span>表影 / 表高</span>
+          <b id="gnomonRatio">0.84</b>
+        </div>
+      </div>
+      <div class="gnomon-presets" role="group" aria-label="切换到至日或分日">
+        <button type="button" data-gnomon-term="9">夏至 · 影最短</button>
+        <button type="button" data-gnomon-term="3">春分 · 影居中</button>
+        <button type="button" data-gnomon-term="21">冬至 · 影最长</button>
+      </div>
+    </div>
+    <figure class="gnomon-figure reveal" style="--d:.12s">
+      <canvas id="gnomonCanvas" role="img" aria-label="北京正午圭表测影示意图"></canvas>
+      <figcaption>北京（北纬 39.9°）正午 · 几何太阳高度 · 场景会随当前节气更新</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="about" id="about">
+  <div class="about-grid">
+    <div class="about-head reveal">
+      <p class="eyebrow">作品方法 <span class="eyebrow-dot">·</span> 04</p>
+      <h2 class="display">把历法<br>变成可看的图像</h2>
+    </div>
+    <div class="about-body reveal" style="--d:.08s">
+      <p class="body-text">
+        作品以太阳视黄经为时间坐标：给定视黄经，经黄赤交角推出赤纬，再由赤纬与观测纬度算出昼长。
+        二十四节气对应太阳视黄经每 15° 的节点，所以环上每一个刻度都能当场验算——
+        拖到夏至，北京几何昼长约 14.8 小时；拖到冬至，约 9.2 小时。该数值按几何地平线计算，不含大气折射与太阳视半径。
+      </p>
+      <p class="body-text dim">
+        视觉上，作品不是给节气知识套一层国风皮肤，而是把数据关系直接变成形式：黄经定义位置，赤纬决定天光，
+        三地昼长塑形南北光带，季节色谱控制空间氛围。三环之间的 23.44° 既是天文原因，也是全站统一的视觉母题。
+      </p>
+    </div>
+    <div class="innovation-grid reveal">
+      <section>
+        <span>01 / 信息艺术</span>
+        <h3>用黄道组织叙事</h3>
+        <p>把一年变成一条可以行走的轨道，使节气关系先被看见，再被阅读。</p>
+      </section>
+      <section>
+        <span>02 / 可视化</span>
+        <h3>让数据塑造形式</h3>
+        <p>太阳黄经、赤纬与三地昼长共同驱动天穹、光带、生成光纹和色彩。</p>
+      </section>
+      <section>
+        <span>03 / 交互</span>
+        <h3>把观看变成实验</h3>
+        <p>黄道、图谱与地轴倾角组成连续证据链，让观众亲手改变并理解天文变量。</p>
+      </section>
+    </div>
+    <div class="about-head reveal">
+      <p class="eyebrow">依据 <span class="eyebrow-dot">·</span> 05</p>
+      <h2 class="display">说法与<br>依据分层</h2>
+    </div>
+    <ul class="src reveal" style="--d:.08s">
+      <li><span class="src-y">西汉</span><b><a class="source-link" href="https://ctext.org/huainanzi/tian-wen-xun/zh" target="_blank" rel="noopener">《淮南子·天文训》</a></b><em>现存最早完整记载二十四节气名称的文献</em></li>
+      <li><span class="src-y">元代</span><b>《月令七十二候集解》</b><em>吴澄撰，七十二候与节气名释义</em></li>
+      <li><span class="src-y">先秦</span><b><a class="source-link" href="https://ctext.org/rites-of-zhou/zh" target="_blank" rel="noopener">《周礼》</a></b><em>冬至祭天、圭表测影的礼制记载</em></li>
+      <li><span class="src-y">今</span><b>紫金山天文台《中国天文年历》</b><em>节气时刻的通行标准</em></li>
+      <li><span class="src-y">港天文台</span><b><a class="source-link hko-link" href="https://www.hko.gov.hk/en/gts/time/calendar/pdf/files/2026e.pdf" target="_blank" rel="noopener"><span class="hko-year">2026</span> 年公历与农历对照表</a></b><em>二十四节气日期逐项校核依据（日期级）</em></li>
+      <li><span class="src-y">2016</span><b><a class="source-link" href="https://ich.unesco.org/en/RL/the-twenty-four-solar-terms-knowledge-in-china-of-time-and-practices-developed-through-observation-of-the-sun-s-annual-motion-00647" target="_blank" rel="noopener">联合国教科文组织</a></b><em>"二十四节气"列入人类非物质文化遗产代表作名录</em></li>
+    </ul>
+    <div class="evidence-strip reveal">
+      <div><b>24</b><span>数据节点</span></div>
+      <div><b>23.44°</b><span>地轴倾角</span></div>
+      <div><b>24 / 24</b><span>日期已核对</span></div>
+      <div><b>0</b><span>外部视觉素材</span></div>
+    </div>
+    <details class="citation-proof reveal">
+      <summary>
+        <span>原文依据 · 六个关键节气</span><b aria-hidden="true">＋</b>
+      </summary>
+      <p class="citation-note">版本：元·吴澄《月令七十二候集解》通行本。以下均为原文摘录与现代意译，正式提交材料可继续补充具体印本页码。</p>
+      <div class="citation-list">
+        <article><b>春分</b><span>春分条</span><q>分者，半也。此当九十日之半，故谓之分。</q><p>昼夜与春季都被平分，因此称为“春分”。</p></article>
+        <article><b>清明</b><span>清明条</span><q>万物齐乎巽，物至此时，皆以洁齐而清明矣。</q><p>万物生长齐整，天地呈现洁净明朗的状态。</p></article>
+        <article><b>谷雨</b><span>谷雨条</span><q>言雨生百谷也。</q><p>雨水滋润百谷生长，故称谷雨。</p></article>
+        <article><b>夏至</b><span>夏至条</span><q>万物于此皆假大而至极也。</q><p>万物生长到极盛，日照与阳气也到达年度高点。</p></article>
+        <article><b>白露</b><span>白露条</span><q>水土湿气凝而为露，秋属金，金色白，而气始寒也。</q><p>湿气遇冷凝结成露，秋气渐凉，露色被古人视为白。</p></article>
+        <article><b>冬至</b><span>冬至条</span><q>阴极之至，阳气始生。</q><p>阴寒达到极点，太阳由此开始北返，阳气重新萌生。</p></article>
+      </div>
+    </details>
+    <div class="method-note reveal">
+      <section>
+        <span class="method-key">计算</span>
+        <h3>太阳视黄经</h3>
+        <p>节气时刻采用 Meeus 太阳位置近似解，统一换算为北京时间；日历日期已与香港天文台年表逐项核对。</p>
+      </section>
+      <section>
+        <span class="method-key">视觉</span>
+        <h3>数据映射与生成视觉</h3>
+        <p>黄经映射轨道位置，三地昼长生成对照光带；72 道程序化线条再由黄经、赤纬与昼长生成 24 枚节气光纹，不使用外部视觉素材。</p>
+      </section>
+      <section>
+        <span class="method-key">写作</span>
+        <h3>释义，不作伪引文</h3>
+        <p>释文属于依据古籍和通行资料整理的科普写作，不把现代整理冒充古籍原文；计算值与解释分别标注。</p>
+      </section>
+    </div>
+  </div>
+</section>
+
+<dialog class="term-dialog" id="termDialog" aria-labelledby="termDialogTitle">
+  <div class="dialog-bar">
+    <div>
+      <p class="eyebrow">岁时 <span class="eyebrow-dot">·</span> 历算</p>
+      <h2 id="termDialogTitle"><span id="tableYear">2026</span> 年节气时刻 <em class="dialog-tag">计算值</em></h2>
+    </div>
+    <button class="dialog-close" id="tableClose" type="button" aria-label="关闭时刻表">×</button>
+  </div>
+  <div class="dialog-note">
+    <span>北京时间 · UTC+8</span>
+    <p>太阳视黄经到达对应度数之时刻，由页面实时解算；不是官方发布的最终历表。</p>
+  </div>
+  <div class="term-table" id="termTable" role="group" aria-label="二十四节气交节时刻"></div>
+  <p class="dialog-foot">节气日期已与<a class="source-link hko-link" href="https://www.hko.gov.hk/en/gts/time/calendar/pdf/files/2026e.pdf" target="_blank" rel="noopener">香港天文台 <span class="hko-year">2026</span> 年公历与农历对照表</a>逐项核对；时刻为页面按 Meeus 近似算法算出的计算值，正式出版与天文观测请以紫金山天文台《中国天文年历》为准。</p>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<footer class="foot">
+  <div class="foot-marquee" aria-hidden="true">
+    <span>周天 · 二十四节气 · 黄道即时间轴 · </span><span>周天 · 二十四节气 · 黄道即时间轴 · </span>
+  </div>
+  <div class="foot-row">
+    <span>二零二六</span>
+    <span>全国大学生数字媒体科技作品及创意竞赛 · 数字艺术与可视化设计类</span>
+    <span class="dim">视黄经 · 三地昼长 · 年度光带 · 节气光纹实时生成</span>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
