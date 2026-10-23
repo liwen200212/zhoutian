@@ -1122,9 +1122,11 @@
     var pad = Math.max(22, w * 0.055);
     var ground = h * 0.77;
     var poleH = h * 0.42;
-    var baseX = w * 0.67;
-    var shadow = clamp(poleH * ratio, 36, w * 0.42);
-    var sunX = baseX - shadow * 0.42;
+    // 太阳位于表杆左侧时，投影必须落在表杆右侧。
+    var baseX = w * 0.54;
+    var maxShadow = Math.max(56, w - pad - baseX - 18);
+    var shadow = clamp(poleH * ratio, 36, maxShadow);
+    var sunX = baseX - shadow * 0.46;
     var sunY = ground - poleH - (altitude / 90) * h * 0.30;
 
     // 地平线与表影
@@ -1135,19 +1137,19 @@
     gctx.moveTo(pad, ground); gctx.lineTo(w - pad, ground);
     gctx.stroke();
 
-    var sg = gctx.createLinearGradient(baseX, 0, baseX - shadow, 0);
+    var sg = gctx.createLinearGradient(baseX, 0, baseX + shadow, 0);
     sg.addColorStop(0, rgba(C["--accent"], 0.22));
     sg.addColorStop(1, rgba(C["--accent"], 0.015));
     gctx.fillStyle = sg;
     gctx.beginPath();
     gctx.moveTo(baseX, ground - 3);
-    gctx.lineTo(baseX - shadow, ground + 2);
-    gctx.lineTo(baseX - shadow + 9, ground + 8);
-    gctx.lineTo(baseX + 9, ground + 7);
+    gctx.lineTo(baseX + shadow, ground + 2);
+    gctx.lineTo(baseX + shadow - 9, ground + 8);
+    gctx.lineTo(baseX - 9, ground + 7);
     gctx.closePath();
     gctx.fill();
     gctx.strokeStyle = rgba(C["--accent"], 0.55);
-    gctx.beginPath(); gctx.moveTo(baseX, ground - 3); gctx.lineTo(baseX - shadow, ground + 4); gctx.stroke();
+    gctx.beginPath(); gctx.moveTo(baseX, ground - 3); gctx.lineTo(baseX + shadow, ground + 4); gctx.stroke();
     gctx.restore();
 
     // 太阳
@@ -1222,7 +1224,7 @@
     gctx.font = '11px "Songti SC",serif';
     gctx.textAlign = "center";
     gctx.fillText("表", baseX + 13, ground - poleH - 2);
-    gctx.fillText("影", baseX - shadow * 0.52, ground + 12);
+    gctx.fillText("影", baseX + shadow * 0.52, ground + 12);
     gctx.restore();
 
     gnomonTerm.textContent = st.n;
