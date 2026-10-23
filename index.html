@@ -342,7 +342,7 @@
       <h2 class="display">看见一年中<br>最长的影子</h2>
       <p class="body-text">
         正午立一根表，记录影子的长短。太阳越高，影子越短；太阳越低，影子越长。
-        古人比较一年里的最短影与最长影，由此定位夏至和冬至，再逐步细分出二十四节气。
+        古人比较一年里的最短影与最长影定位二至，又由昼夜平分寻找春分与秋分，再逐步细分出二十四节气。
       </p>
       <div class="gnomon-readout">
         <div>
@@ -359,14 +359,15 @@
         </div>
       </div>
       <div class="gnomon-presets" role="group" aria-label="切换到至日或分日">
-        <button type="button" data-gnomon-term="9">夏至 · 影最短</button>
         <button type="button" data-gnomon-term="3">春分 · 影居中</button>
+        <button type="button" data-gnomon-term="9">夏至 · 影最短</button>
+        <button type="button" data-gnomon-term="15">秋分 · 影居中</button>
         <button type="button" data-gnomon-term="21">冬至 · 影最长</button>
       </div>
     </div>
     <figure class="gnomon-figure reveal" style="--d:.12s">
-      <canvas id="gnomonCanvas" role="img" aria-label="北京正午圭表测影示意图"></canvas>
-      <figcaption>北京（北纬 39.9°）正午 · 几何太阳高度 · 场景会随当前节气更新</figcaption>
+      <canvas id="gnomonCanvas" role="img" aria-label="北京正午圭表测影示意图，标出春分、夏至、秋分与冬至"></canvas>
+      <figcaption>北京（北纬 39.9°）正午 · 二分二至与当前节气联动 · 几何太阳高度</figcaption>
     </figure>
   </div>
 </section>

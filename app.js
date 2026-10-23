@@ -1181,6 +1181,42 @@
     gctx.fillText("北京 · 正午", pad, 20);
     gctx.textAlign = "right";
     gctx.fillText(st.n, w - pad, 20);
+
+    // 二分二至参照：四分节点在图中始终可见
+    var refTerms = [
+      {index:3, name:"春分"},
+      {index:9, name:"夏至"},
+      {index:15, name:"秋分"},
+      {index:21, name:"冬至"}
+    ];
+    var refY = 46;
+    var refStart = pad + Math.min(44, w * 0.045);
+    var refEnd = w - pad;
+    gctx.strokeStyle = rgba(C["--muted"], 0.24);
+    gctx.lineWidth = 1;
+    gctx.beginPath();
+    gctx.moveTo(refStart, refY);
+    gctx.lineTo(refEnd, refY);
+    gctx.stroke();
+    gctx.font = '11px "Songti SC",serif';
+    gctx.textAlign = "center";
+    gctx.textBaseline = "bottom";
+    refTerms.forEach(function (ref, i) {
+      var rx = refStart + (refEnd - refStart) * (i / (refTerms.length - 1));
+      var active = S.sel === ref.index;
+      gctx.strokeStyle = active ? C["--accent"] : rgba(C["--ring"], 0.58);
+      gctx.lineWidth = active ? 1.4 : 1;
+      gctx.beginPath();
+      gctx.moveTo(rx, refY - 4);
+      gctx.lineTo(rx, refY + 4);
+      gctx.stroke();
+      gctx.fillStyle = active ? C["--accent"] : rgba(C["--muted"], 0.82);
+      gctx.beginPath();
+      gctx.arc(rx, refY, active ? 2.8 : 2, 0, 6.283);
+      gctx.fill();
+      gctx.fillText(ref.name, rx, refY - 8);
+    });
+
     gctx.textBaseline = "top";
     gctx.fillStyle = rgba(C["--muted"], 0.8);
     gctx.font = '11px "Songti SC",serif';
@@ -1194,7 +1230,8 @@
     gnomonRatio.textContent = ratio.toFixed(2);
     gnomonCanvas.setAttribute("aria-label",
       "北京正午圭表测影：" + st.n + "，太阳高度约" + altitude.toFixed(1) +
-      "度，表影长度约为表高的" + ratio.toFixed(2) + "倍");
+      "度，表影长度约为表高的" + ratio.toFixed(2) +
+      "倍；图中参照春分、夏至、秋分和冬至");
     document.querySelectorAll("[data-gnomon-term]").forEach(function (b) {
       b.classList.toggle("on", parseInt(b.getAttribute("data-gnomon-term"), 10) === S.sel);
     });
