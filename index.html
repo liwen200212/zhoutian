@@ -41,10 +41,15 @@
     </div>
     <div class="intro-foot">
       <button class="enter" id="enter" type="button">
-        <span class="enter-txt">入天 · 开始观象</span>
-        <span class="enter-line"></span>
+        <span class="enter-txt"><b>点击进入作品</b><small>查看天象交互与节气图谱</small></span>
+        <span class="enter-arrow" aria-hidden="true">→</span>
       </button>
-      <p class="intro-meta">拖拽环视 <span>／</span> 滚轮缩放 <span>／</span> 点击刻度</p>
+      <div class="intro-meta">
+        <span class="intro-meta-title">浏览提示</span>
+        <span>左右拖动环视天球</span>
+        <span>点击节气刻度切换</span>
+        <span>向下滚动查看图谱</span>
+      </div>
     </div>
     <div class="intro-rule"></div>
   </div>
@@ -97,17 +102,17 @@
 
   <section class="guide" id="guide" role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="guideTitle" aria-describedby="guideDesc">
     <button class="guide-close" id="guideClose" type="button" aria-label="关闭体验引导">×</button>
-    <p class="eyebrow">初见 <span class="eyebrow-dot">·</span> 三十秒</p>
+    <p class="eyebrow">操作指引 <span class="eyebrow-dot">·</span> 十秒上手</p>
     <h2 id="guideTitle">沿着太阳，看见一年</h2>
-    <p class="guide-desc" id="guideDesc">黄道环上的每一格都是一个节气。位置、天光与数据会一起变化，让抽象历法成为一幅可以行走的年度图像。</p>
+    <p class="guide-desc" id="guideDesc">左右拖动可环视天球，点击节气刻度可切换内容；右上角「导览」会自动演示主要作品内容。继续向下可查看三地昼长与节气光纹。</p>
     <ol class="guide-steps">
-      <li><b>01</b><span><strong>左右拖动</strong>环视天球</span></li>
-      <li><b>02</b><span><strong>点击</strong>刻度查看节气</span></li>
-      <li><b>03</b><span><strong>播放</strong>走完一年</span></li>
+      <li><b>01</b><span><strong>拖动</strong>环视黄道天球</span></li>
+      <li><b>02</b><span><strong>点击</strong>节气或「导览」</span></li>
+      <li><b>03</b><span><strong>向下滚动</strong>查看数据图谱</span></li>
     </ol>
     <div class="guide-actions">
-      <button class="guide-start" id="guideStart" type="button">60秒看作品</button>
-      <button class="guide-skip" id="guideSkip" type="button">自由探索</button>
+      <button class="guide-start" id="guideStart" type="button">开始60秒自动导览</button>
+      <button class="guide-skip" id="guideSkip" type="button">继续向下浏览</button>
     </div>
   </section>
 
@@ -185,7 +190,9 @@
   </nav>
 
   <a class="scroll-cue" href="#atlas">
-    <span>进入节气图谱</span><i aria-hidden="true"></i>
+    <span class="scroll-cue-no">02</span>
+    <span class="scroll-cue-copy"><small>继续浏览</small><b>年度节气图谱</b></span>
+    <i aria-hidden="true"></i>
   </a>
 
   <button class="focus-exit" id="focusExit" type="button" aria-hidden="true">轻触退出沉浸</button>

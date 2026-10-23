@@ -597,7 +597,7 @@
   });
   guideSkip.addEventListener("click", function () {
     hideGuide(true);
-    playBtn.focus();
+    $("atlas").scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "start"});
   });
   guideClose.addEventListener("click", function () {
     hideGuide(true);
