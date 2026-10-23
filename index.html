@@ -32,7 +32,7 @@
       <h1 class="intro-title">
         <span style="--i:0">二</span><span style="--i:1">十</span><span style="--i:2">四</span><span style="--i:3">节</span><span style="--i:4">气</span>
       </h1>
-      <p class="intro-lede">一部随太阳运行的节气视觉图谱。</p>
+      <p class="intro-lede">看地球绕日运行，光照随节气改变。</p>
       <div class="intro-proof" aria-hidden="true">
         <span>赤道</span><i></i><b>23.44°</b><i></i><span>黄道</span>
       </div>
@@ -46,7 +46,7 @@
       </button>
       <div class="intro-meta">
         <span class="intro-meta-title">浏览提示</span>
-        <span>左右拖动环视天球</span>
+        <span>左右拖动环视公转轨道</span>
         <span>点击节气刻度切换</span>
         <span>向下滚动查看图谱</span>
       </div>
@@ -59,14 +59,14 @@
 
 <main class="stage" id="stage">
   <canvas id="scene" role="img"
-    aria-label="实时投影天球：赤道环、子午环与倾斜二十三度的黄道环，二十四个节气刻度分布在黄道上，太阳沿黄道运行"></canvas>
+    aria-label="实时日地关系图：太阳位于中心，地球沿黄道轨道运行；地球保持二十三点四四度倾斜并持续自转，二十四节气节点随地球公转位置展开"></canvas>
   <div class="grain" aria-hidden="true"></div>
   <div class="vig" aria-hidden="true"></div>
 
   <header class="top">
     <div class="brand">
       <span class="brand-mark">周天</span>
-      <span class="brand-sub">二十四节气<br>可计算视觉图谱</span>
+      <span class="brand-sub">地球公转<br>太阳光照与节气</span>
     </div>
     <div class="tools">
       <button class="tool tool-play" id="play" type="button" aria-pressed="false"><span class="play-icon" aria-hidden="true"></span><span id="playText">播放</span></button>
@@ -104,9 +104,9 @@
     <button class="guide-close" id="guideClose" type="button" aria-label="关闭体验引导">×</button>
     <p class="eyebrow">操作指引 <span class="eyebrow-dot">·</span> 十秒上手</p>
     <h2 id="guideTitle">沿着太阳，看见一年</h2>
-    <p class="guide-desc" id="guideDesc">左右拖动可环视天球，点击节气刻度可切换内容；右上角「导览」会自动演示主要作品内容。继续向下可查看三地昼长与节气光纹。</p>
+    <p class="guide-desc" id="guideDesc">太阳位于中心，地球沿黄道公转。左右拖动可环视轨道，点击节气刻度可切换地球受光位置；右上角「导览」会自动演示主要作品内容。</p>
     <ol class="guide-steps">
-      <li><b>01</b><span><strong>拖动</strong>环视黄道天球</span></li>
+      <li><b>01</b><span><strong>拖动</strong>环视地球公转轨道</span></li>
       <li><b>02</b><span><strong>点击</strong>节气或「导览」</span></li>
       <li><b>03</b><span><strong>向下滚动</strong>查看数据图谱</span></li>
     </ol>
@@ -392,8 +392,8 @@
         拖到夏至，北京几何昼长约 14.8 小时；拖到冬至，约 9.2 小时。该数值按几何地平线计算，不含大气折射与太阳视半径。
       </p>
       <p class="body-text dim">
-        视觉上，作品不是给节气知识套一层国风皮肤，而是把数据关系直接变成形式：黄经定义位置，赤纬决定天光，
-        三地昼长塑形南北光带，季节色谱控制空间氛围。三环之间的 23.44° 既是天文原因，也是全站统一的视觉母题。
+        视觉上，太阳位于中心，地球沿黄道轨道运行；地轴保持约 23.44° 倾斜并持续自转，
+        太阳照向地球的方向随公转位置改变。赤纬决定受光位置与天光，三地昼长塑形南北光带。
       </p>
     </div>
     <div class="innovation-grid reveal">

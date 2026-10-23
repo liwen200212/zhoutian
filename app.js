@@ -305,6 +305,146 @@
     }
   }
 
+  function drawEarthGlobe(earthWorld, e, sunScreen, sunRadius, lam, w) {
+    var er = clamp(e.s * 0.082, 16, 44);
+    var lightDX = sunScreen.x - e.x;
+    var lightDY = sunScreen.y - e.y;
+    var lightLen = Math.max(1, Math.hypot(lightDX, lightDY));
+    var lx = lightDX / lightLen;
+    var ly = lightDY / lightLen;
+
+    // 地球自转轴保持在空间中倾斜约 23.44°；经线随地球持续自转。
+    var axisAngle = TILT_DEFAULT * DEG;
+    var northWorld = {
+      x: earthWorld.x + Math.sin(axisAngle) * 0.15,
+      y: earthWorld.y + Math.cos(axisAngle) * 0.15,
+      z: earthWorld.z
+    };
+    var southWorld = {
+      x: earthWorld.x - Math.sin(axisAngle) * 0.15,
+      y: earthWorld.y - Math.cos(axisAngle) * 0.15,
+      z: earthWorld.z
+    };
+    var north = project(northWorld);
+    var south = project(southWorld);
+    var axisScreenAngle = Math.atan2(north.y - south.y, north.x - south.x);
+    var ux = Math.cos(axisScreenAngle);
+    var uy = Math.sin(axisScreenAngle);
+
+    // 太阳到地球的受光方向
+    ctx.save();
+    ctx.strokeStyle = rgba(C["--sun2"], 0.28);
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 7]);
+    ctx.beginPath();
+    ctx.moveTo(sunScreen.x + lx * sunRadius * 1.4, sunScreen.y + ly * sunRadius * 1.4);
+    ctx.lineTo(e.x - lx * er * 1.05, e.y - ly * er * 1.05);
+    ctx.stroke();
+    ctx.restore();
+
+    // 夜半球底色
+    ctx.save();
+    ctx.fillStyle = rgba(C["--bg2"], 0.98);
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, er, 0, 6.283);
+    ctx.fill();
+
+    // 朝向太阳的一半被照亮，明暗交界随公转位置改变
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, er, 0, 6.283);
+    ctx.clip();
+    var day = ctx.createLinearGradient(
+      e.x + lx * er, e.y + ly * er,
+      e.x - lx * er, e.y - ly * er
+    );
+    day.addColorStop(0, rgba(C["--ring"], 0.94));
+    day.addColorStop(0.38, rgba(C["--ring2"], 0.56));
+    day.addColorStop(0.58, rgba(C["--ring2"], 0.16));
+    day.addColorStop(0.64, rgba(C["--bg"], 0.05));
+    day.addColorStop(1, rgba(C["--bg"], 0.20));
+    ctx.fillStyle = day;
+    ctx.fillRect(e.x - er, e.y - er, er * 2, er * 2);
+
+    // 随自转移动的经线
+    ctx.translate(e.x, e.y);
+    ctx.rotate(axisScreenAngle + Math.PI / 2);
+    ctx.strokeStyle = rgba(C["--ink"], 0.24);
+    ctx.lineWidth = 0.7;
+    var spin = S.time * 0.42;
+    for (var m = 0; m < 3; m++) {
+      var phase = spin + m * Math.PI * 2 / 3;
+      var mx = Math.sin(phase) * er * 0.63;
+      var mrx = Math.max(1, Math.abs(Math.cos(phase)) * er * 0.17);
+      ctx.beginPath();
+      ctx.ellipse(mx, 0, mrx, er * 0.82, 0, 0, 6.283);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.ellipse(0, 0, er * 0.91, er * 0.24, 0, 0, 6.283);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.strokeStyle = rgba(C["--ring"], 0.72);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, er, 0, 6.283);
+    ctx.stroke();
+    ctx.restore();
+
+    // 倾斜地轴与旋转指示
+    ctx.save();
+    ctx.strokeStyle = rgba(C["--ink"], 0.76);
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(e.x - ux * er * 1.46, e.y - uy * er * 1.46);
+    ctx.lineTo(e.x + ux * er * 1.46, e.y + uy * er * 1.46);
+    ctx.stroke();
+
+    var ringX = e.x + ux * er * 1.12;
+    var ringY = e.y + uy * er * 1.12;
+    ctx.translate(ringX, ringY);
+    ctx.rotate(axisScreenAngle + Math.PI / 2);
+    ctx.strokeStyle = rgba(C["--ring2"], 0.58);
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, er * 0.34, er * 0.105, 0, 0, 6.283);
+    ctx.stroke();
+    var spinAngle = S.time * 1.15;
+    ctx.fillStyle = C["--accent"];
+    ctx.beginPath();
+    ctx.arc(Math.cos(spinAngle) * er * 0.34, Math.sin(spinAngle) * er * 0.105, 2.1, 0, 6.283);
+    ctx.fill();
+    ctx.restore();
+
+    // 当前太阳直射点
+    var dec = declination(lam, TILT_DEFAULT);
+    var spotX = e.x + (lx * Math.cos(dec) + ux * Math.sin(dec)) * er * 0.64;
+    var spotY = e.y + (ly * Math.cos(dec) + uy * Math.sin(dec)) * er * 0.64;
+    ctx.save();
+    ctx.fillStyle = C["--sun1"];
+    ctx.beginPath();
+    ctx.arc(spotX, spotY, Math.max(1.8, er * 0.07), 0, 6.283);
+    ctx.fill();
+    ctx.strokeStyle = rgba(C["--sun2"], 0.65);
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(spotX, spotY, Math.max(4, er * 0.15), 0, 6.283);
+    ctx.stroke();
+    ctx.restore();
+
+    var hem = dec >= 0 ? "北纬 " : "南纬 ";
+    ctx.save();
+    ctx.fillStyle = rgba(C["--muted"], 0.88);
+    ctx.font = '9.5px "Songti SC","STSong",serif';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    var labelX = clamp(e.x - lx * er * 1.9, 76, w - 76);
+    var labelY = e.y - ly * er * 1.3;
+    ctx.fillText("地球 · 自转轴 23.44°", labelX, labelY);
+    ctx.restore();
+  }
+
   function currentLam() {
     var t = S.tDisp;
     var fi = Math.floor(t);
@@ -347,63 +487,39 @@
     drawRing("eq", C["--ring"], 1, 0.42);
     drawRing("mer", C["--ring2"], 1, 0.26);
     drawRing("ec", C["--ring"], 1.7, 0.95, true);
-    drawTiltAnnotation();
-
-    // 地轴
-    var a1 = project({x: 0, y: -1.18, z: 0});
-    var b1 = project({x: 0, y: 1.18, z: 0});
-    ctx.save();
-    ctx.globalAlpha = 0.5;
-    ctx.strokeStyle = C["--ring2"];
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 6]);
-    ctx.beginPath(); ctx.moveTo(a1.x, a1.y); ctx.lineTo(b1.x, b1.y); ctx.stroke();
-    ctx.restore();
-
-    // 地球
-    var e = project({x: 0, y: 0, z: 0});
-    var er = Math.max(9, e.s * 0.072);
-    var eg = ctx.createRadialGradient(e.x - er * 0.4, e.y - er * 0.4, er * 0.1, e.x, e.y, er);
-    eg.addColorStop(0, rgba(C["--ring"], 0.55));
-    eg.addColorStop(0.6, rgba(C["--ring2"], 0.22));
-    eg.addColorStop(1, fade(C["--ring2"]));
-    ctx.fillStyle = eg;
-    ctx.beginPath(); ctx.arc(e.x, e.y, er, 0, 6.283); ctx.fill();
-    ctx.strokeStyle = rgba(C["--ring"], 0.5);
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(e.x, e.y, er, 0, 6.283); ctx.stroke();
 
     drawMountains();
 
-    // 太阳
-    var sp = eclipticPoint(lam, 1);
-    var sq = project(sp);
-    var foot = project({x: sp.x, y: 0, z: sp.z});
-    ctx.save();
-    ctx.globalAlpha = 0.45;
-    ctx.strokeStyle = C["--ring2"];
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 5]);
-    ctx.beginPath(); ctx.moveTo(sq.x, sq.y); ctx.lineTo(foot.x, foot.y); ctx.stroke();
-    ctx.restore();
-
-    var sr = Math.max(5, sq.s * 0.032);
-    var sg = ctx.createRadialGradient(sq.x, sq.y, 0, sq.x, sq.y, sr * 7);
+    // 太阳位于中心
+    var sunWorld = {x: 0, y: 0, z: 0};
+    var sq = project(sunWorld);
+    var sr = Math.max(11, sq.s * 0.046);
+    var sg = ctx.createRadialGradient(sq.x, sq.y, 0, sq.x, sq.y, sr * 6);
     sg.addColorStop(0, C["--sun1"]);
-    sg.addColorStop(0.16, C["--sun2"]);
+    sg.addColorStop(0.20, C["--sun2"]);
     sg.addColorStop(1, fade(C["--sun2"]));
     ctx.fillStyle = sg;
-    ctx.beginPath(); ctx.arc(sq.x, sq.y, sr * 7, 0, 6.283); ctx.fill();
+    ctx.beginPath(); ctx.arc(sq.x, sq.y, sr * 6, 0, 6.283); ctx.fill();
     ctx.fillStyle = C["--sun1"];
     ctx.beginPath(); ctx.arc(sq.x, sq.y, sr, 0, 6.283); ctx.fill();
+    ctx.fillStyle = rgba(C["--muted"], 0.88);
+    ctx.font = '10.5px "Songti SC","STSong",serif';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("太阳", sq.x, sq.y + sr * 1.8);
+
+    // 地球沿黄道公转；视觉位置取太阳视黄经的对向点
+    var earthWorld = eclipticPoint(lam + 180, 1);
+    var e = project(earthWorld);
+    drawEarthGlobe(earthWorld, e, sq, sr, lam, w);
 
     // 节气刻度
     S.markers = [];
     var MAJOR = {0:1, 3:1, 6:1, 9:1, 12:1, 15:1, 18:1, 21:1};
     for (var k = 0; k < 24; k++) {
       var L = ST[k].l;
-      var base = eclipticPoint(L, 1);
-      var out = eclipticPoint(L, 1.11);
+      var base = eclipticPoint(L + 180, 1);
+      var out = eclipticPoint(L + 180, 1.11);
       var q = project(base), qo = project(out);
       S.markers.push({x: q.x, y: q.y, i: k});
       var on = (k === S.sel);
@@ -470,8 +586,8 @@
     mDay.textContent = day.toFixed(1) + " 小时";
     mHou.textContent = st.h;
 
-    pOrigin.textContent = "太阳的视黄经到达 " + st.l + "° 时，就是" + st.n +
-      "。可以把它理解为太阳走到黄道刻度盘的第 " + (S.sel + 1) + " 格；此刻太阳直射" +
+    pOrigin.textContent = "地球运行到黄道轨道的第 " + (S.sel + 1) + " 个节段时，太阳视黄经为 " + st.l + "°，就是" + st.n +
+      "；此刻太阳直射" +
       hem + Math.abs(d).toFixed(1) + "度。";
     pWeather.textContent = st.c + "。";
     pHou.textContent = "三候：" + st.h;
@@ -711,8 +827,8 @@
   var tourIndex = 0, tourActive = false, tourToken = 0;
   var tourSteps = [
     {
-      title:"黄道就是时间轴",
-      text:"二十四节气不是一组孤立卡片，而是太阳沿黄道每走 15° 留下的二十四格。",
+      title:"太阳在中心，地球绕日公转",
+      text:"黄道环就是地球的公转轨道。二十四节气不是一组孤立卡片，而是太阳视黄经每前进 15° 形成的二十四个节点。",
       duration:8000,
       enter:function () {
         S.playing = false; syncPlay(); setFocusMode(false);
@@ -721,8 +837,8 @@
       }
     },
     {
-      title:"太阳移动，时间开始",
-      text:"从春分走向夏至，太阳直射点北移，北京昼长由 12 小时增长到约 14.8 小时。",
+      title:"地球移动，受光开始变化",
+      text:"从春分运行到夏至，倾斜的地轴北端更朝向太阳，太阳直射点北移，北京昼长由 12 小时增长到约 14.8 小时。",
       duration:9000,
       enter:function (token) {
         stage.scrollIntoView({behavior: reduce ? "auto" : "smooth", block:"start"});
