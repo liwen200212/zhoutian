@@ -61,6 +61,16 @@
     {name:"创神星", a:"#d4c6b8", b:"#75685c"}
   ];
 
+  // 每个节气拥有独立的天空色温，按节点序列平滑过渡。
+  var TERM_SKY = [
+    "#274438", "#263f4b", "#4b432e", "#38505a",
+    "#405347", "#485039", "#4c3e27", "#554d2f",
+    "#4d3b25", "#60351d", "#64321e", "#6b2017",
+    "#5d4629", "#514039", "#45505b", "#5a5038",
+    "#344a55", "#3f484b", "#283c47", "#354454",
+    "#3e4f61", "#243c4d", "#2c3e4c", "#233845"
+  ];
+
   var DEG = Math.PI / 180;
   var TILT_DEFAULT = 23.44;
   var LAT_BJ = 39.9 * DEG;
@@ -306,11 +316,13 @@
     ctx.restore();
   }
 
-  function drawMountains() {
+  function drawMountains(tint) {
+    var palette = document.body.getAttribute("data-pal");
+    var tintAmount = palette === "paper" ? 0.06 : palette === "qing" ? 0.12 : 0.15;
     var layers = [
-      {y: 0.80, amp: 0.085, col: C["--mount3"], al: 0.55, f: 0.9},
-      {y: 0.87, amp: 0.065, col: C["--mount2"], al: 0.75, f: 1.5},
-      {y: 0.94, amp: 0.048, col: C["--mount1"], al: 0.95, f: 2.2}
+      {y: 0.80, amp: 0.085, col: mix(C["--mount3"], tint, tintAmount), al: 0.55, f: 0.9},
+      {y: 0.87, amp: 0.065, col: mix(C["--mount2"], tint, tintAmount), al: 0.75, f: 1.5},
+      {y: 0.94, amp: 0.048, col: mix(C["--mount1"], tint, tintAmount), al: 0.95, f: 2.2}
     ];
     for (var k = 0; k < layers.length; k++) {
       var L = layers[k], base = S.h * L.y, amp = S.h * L.amp;
@@ -567,19 +579,38 @@
     return (a + d * f) % 360;
   }
 
+  function currentSkyColor() {
+    var t = S.tDisp;
+    var fi = Math.floor(t);
+    var i = ((fi % 24) + 24) % 24;
+    var f = clamp(t - fi, 0, 1);
+    return mix(TERM_SKY[i], TERM_SKY[(i + 1) % 24], f);
+  }
+
   function render() {
     var w = S.w, h = S.h;
     ctx.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
     var lam = currentLam();
-    var warmth = (Math.sin(lam * DEG) + 1) / 2;
+    var skyTint = currentSkyColor();
+    var palette = document.body.getAttribute("data-pal");
+    var skyStrength = palette === "paper" ? 0.12 : palette === "qing" ? 0.24 : 0.30;
+    var skyCore = mix(C["--bg"], skyTint, skyStrength);
+    var skyEdge = mix(C["--bg"], skyTint, skyStrength * 0.34);
 
-    var g = ctx.createRadialGradient(w * 0.5, h * 0.72, 20, w * 0.5, h * 0.55, Math.max(w, h) * 0.95);
-    g.addColorStop(0, mix(C["--bg"], warmth > 0.5 ? C["--warm"] : C["--cool"], 0.30));
-    g.addColorStop(0.55, C["--bg"]);
+    var g = ctx.createRadialGradient(w * 0.5, h * 0.46, 20, w * 0.5, h * 0.52, Math.max(w, h) * 0.92);
+    g.addColorStop(0, skyCore);
+    g.addColorStop(0.56, skyEdge);
     g.addColorStop(1, C["--bg"]);
     ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    var termWash = ctx.createLinearGradient(0, 0, w, h);
+    termWash.addColorStop(0, rgba(skyTint, palette === "paper" ? 0.035 : 0.08));
+    termWash.addColorStop(0.55, fade(skyTint));
+    termWash.addColorStop(1, rgba(skyTint, palette === "paper" ? 0.02 : 0.04));
+    ctx.fillStyle = termWash;
     ctx.fillRect(0, 0, w, h);
 
     // 星
@@ -600,7 +631,7 @@
     drawRing("mer", C["--ring2"], 1, 0.26);
     drawRing("ec", C["--ring"], 1.7, 0.95, true);
 
-    drawMountains();
+    drawMountains(skyTint);
 
     // 太阳位于中心
     var sunWorld = {x: 0, y: 0, z: 0};
