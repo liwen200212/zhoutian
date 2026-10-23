@@ -33,6 +33,34 @@
     {n:"大寒",l:300,c:"寒气逆极，冰天雪地，寒潮频繁",h:"鸡始乳 · 征鸟厉疾 · 水泽腹坚",g:"年终积肥，筹备春耕",s:"糯米饭、八宝饭",y:"至此栗烈已极。一年最后一个节气，循环将始。"}
   ];
 
+  // 节气伴星为本作的艺术映射，不代表传统节气与天体之间的一一对应。
+  var COMPANIONS = [
+    {name:"水星", a:"#c0c6ca", b:"#5c656b"},
+    {name:"金星", a:"#ead19a", b:"#9d7640"},
+    {name:"火星", a:"#d36d4c", b:"#713728"},
+    {name:"木星", a:"#d8b27c", b:"#8a6040"},
+    {name:"土星", a:"#ddc791", b:"#8c7448", ring:"horizontal"},
+    {name:"天王星", a:"#a7d8dd", b:"#517c91", ring:"vertical"},
+    {name:"海王星", a:"#7e9fda", b:"#304f91"},
+    {name:"月球", a:"#d8d4c8", b:"#77766f"},
+    {name:"冥王星", a:"#c4a98d", b:"#655243"},
+    {name:"谷神星", a:"#b9b4a8", b:"#66645d"},
+    {name:"婚神星", a:"#cbb39f", b:"#756052"},
+    {name:"智神星", a:"#b4b9ba", b:"#626a6d"},
+    {name:"灶神星", a:"#b8aaa0", b:"#675a52"},
+    {name:"木卫一", a:"#e4cf82", b:"#997d3e"},
+    {name:"木卫二", a:"#d8e4e8", b:"#81949e"},
+    {name:"木卫三", a:"#bdb5a3", b:"#6e6759"},
+    {name:"木卫四", a:"#9d958b", b:"#514c46"},
+    {name:"土卫二", a:"#e7eff0", b:"#9caeb0"},
+    {name:"土卫六", a:"#d6ad6f", b:"#84613c"},
+    {name:"天卫三", a:"#a8b1b5", b:"#59666c"},
+    {name:"天卫四", a:"#9aa5aa", b:"#536066"},
+    {name:"海卫一", a:"#c8c1b6", b:"#716b63"},
+    {name:"冥卫一", a:"#b9afa8", b:"#655c56"},
+    {name:"创神星", a:"#d4c6b8", b:"#75685c"}
+  ];
+
   var DEG = Math.PI / 180;
   var TILT_DEFAULT = 23.44;
   var LAT_BJ = 39.9 * DEG;
@@ -433,15 +461,99 @@
     ctx.stroke();
     ctx.restore();
 
-    var hem = dec >= 0 ? "北纬 " : "南纬 ";
+    return er;
+  }
+
+  function drawTermCompanion(earthScreen, earthRadius, index, sunScreen) {
+    var companion = COMPANIONS[index];
+    var inwardX = sunScreen.x - earthScreen.x;
+    var inwardY = sunScreen.y - earthScreen.y;
+    var inwardLen = Math.max(1, Math.hypot(inwardX, inwardY));
+    inwardX /= inwardLen;
+    inwardY /= inwardLen;
+    var perpX = -inwardY;
+    var perpY = inwardX;
+    var sway = Math.sin(S.time * 0.28 + index * 0.7) * 0.22;
+    var maxX = S.w > 900 ? S.w - 390 : S.w - 28;
+    var cx = clamp(earthScreen.x + inwardX * earthRadius * 2.15 +
+      perpX * earthRadius * (1.1 + sway), 64, maxX);
+    var cy = clamp(earthScreen.y + inwardY * earthRadius * 2.15 +
+      perpY * earthRadius * (1.1 + sway), S.h * 0.1, S.h * 0.6);
+    var pr = clamp(earthRadius * 0.27, 6.5, 12);
+    var pulse = 0.82 + 0.18 * Math.sin(S.time * 1.8 + index * 0.7);
+
     ctx.save();
-    ctx.fillStyle = rgba(C["--muted"], 0.88);
-    ctx.font = '9.5px "Songti SC","STSong",serif';
+    ctx.strokeStyle = rgba(companion.a, 0.3);
+    ctx.setLineDash([2, 5]);
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(earthScreen.x, earthScreen.y);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.globalAlpha = pulse;
+    var halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, pr * 3.8);
+    halo.addColorStop(0, rgba(companion.a, 0.28));
+    halo.addColorStop(1, rgba(companion.b, 0));
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(cx, cy, pr * 3.8, 0, 6.283);
+    ctx.fill();
+
+    if (companion.ring) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(companion.ring === "vertical" ? 1.18 : -0.34);
+      ctx.strokeStyle = rgba(companion.a, 0.6);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, pr * 1.8, pr * 0.5, 0, 0, 6.283);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    var body = ctx.createRadialGradient(cx - pr * 0.35, cy - pr * 0.4, 0, cx, cy, pr * 1.08);
+    body.addColorStop(0, companion.a);
+    body.addColorStop(0.62, mix(companion.a, companion.b, 0.52));
+    body.addColorStop(1, companion.b);
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(cx, cy, pr, 0, 6.283);
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, pr, 0, 6.283);
+    ctx.clip();
+    ctx.strokeStyle = rgba("#ffffff", 0.16);
+    ctx.lineWidth = 0.8;
+    [-0.38, 0.08, 0.48].forEach(function (offset) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + pr * offset, pr * 0.96, pr * 0.17, -0.14, 0, 6.283);
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    ctx.strokeStyle = rgba(companion.a, 0.62);
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(cx, cy, pr, 0, 6.283);
+    ctx.stroke();
+
+    var labelY = cy - pr - 14;
+    if (labelY < S.h * 0.085) labelY = cy + pr + 14;
+    ctx.font = '10px "Songti SC","STSong",serif';
+    var labelW = ctx.measureText(companion.name).width + 14;
+    var labelX = clamp(cx - labelW / 2, 4, maxX - labelW);
+    ctx.fillStyle = rgba(C["--bg"], 0.84);
+    ctx.fillRect(labelX, labelY - 9, labelW, 18);
+    ctx.strokeStyle = rgba(companion.a, 0.42);
+    ctx.strokeRect(labelX + 0.5, labelY - 8.5, labelW - 1, 17);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    var labelX = clamp(e.x - lx * er * 1.9, 76, w - 76);
-    var labelY = e.y - ly * er * 1.3;
-    ctx.fillText("地球 · 自转轴 23.44°", labelX, labelY);
+    ctx.fillStyle = companion.a;
+    ctx.fillText(companion.name, cx, labelY);
     ctx.restore();
   }
 
@@ -511,7 +623,8 @@
     // 地球沿黄道公转；视觉位置取太阳视黄经的对向点
     var earthWorld = eclipticPoint(lam + 180, 1);
     var e = project(earthWorld);
-    drawEarthGlobe(earthWorld, e, sq, sr, lam, w);
+    var earthRadius = drawEarthGlobe(earthWorld, e, sq, sr, lam, w);
+    drawTermCompanion(e, earthRadius, S.sel, sq);
 
     // 节气刻度
     S.markers = [];
@@ -553,7 +666,7 @@
   var elTerm = $("termName"), elIdx = $("idx"), elLam = $("lam"), elGloss = $("gloss");
   var elTermDate = $("termDate"), panelNo = $("panelNo"), panelDate = $("panelDate");
   var mobileCurrent = $("mobileCurrent");
-  var mDec = $("mDec"), mDay = $("mDay"), mHou = $("mHou");
+  var mDec = $("mDec"), mDay = $("mDay"), mHou = $("mHou"), mCompanion = $("mCompanion");
   var pOrigin = $("pOrigin"), pWeather = $("pWeather"), pHou = $("pHou");
   var pWork = $("pWork"), pFood = $("pFood"), pSource = $("pSource");
   var activeYear = new Date().getFullYear();
@@ -585,6 +698,11 @@
     mDec.textContent = hem + Math.abs(d).toFixed(1) + "°";
     mDay.textContent = day.toFixed(1) + " 小时";
     mHou.textContent = st.h;
+    mCompanion.textContent = COMPANIONS[S.sel].name;
+    canvas.setAttribute("aria-label",
+      "太阳位于中心的日地关系图。当前为" + st.n + "，地球运行至第" + (S.sel + 1) +
+      "个节气节点，节气伴星为" + COMPANIONS[S.sel].name +
+      "；节气伴星对应关系属于艺术映射。");
 
     pOrigin.textContent = "地球运行到黄道轨道的第 " + (S.sel + 1) + " 个节段时，太阳视黄经为 " + st.l + "°，就是" + st.n +
       "；此刻太阳直射" +
@@ -601,6 +719,7 @@
       retrigger(elTerm, "swap");
       retrigger(elTermDate, "swap");
       retrigger(elGloss, "swap");
+      retrigger(mCompanion, "swap");
     }
     firstPanelUpdate = false;
     syncTableSelection();

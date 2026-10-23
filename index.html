@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>周天 · 二十四节气可计算视觉图谱</title>
-<meta name="description" content="《周天》是一件可计算的二十四节气交互视觉作品。黄道环即时间轴，三地昼长光带与生成节气光纹把太阳位置、赤纬和交节时刻转成可观看、可验证的年度图像。">
+<meta name="description" content="《周天》是一件可计算的二十四节气交互视觉作品。太阳居中、地球沿黄道公转，每一节气拥有独立伴星；三地昼长光带与生成节气光纹把天文数据转成可观看、可验证的年度图像。">
 <meta name="theme-color" content="#080b10">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23080b10'/%3E%3Crect x='9' y='9' width='46' height='46' fill='none' stroke='%23c1502f'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='28' fill='%23c1502f' font-family='serif'%3E周%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
@@ -104,7 +104,7 @@
     <button class="guide-close" id="guideClose" type="button" aria-label="关闭体验引导">×</button>
     <p class="eyebrow">操作指引 <span class="eyebrow-dot">·</span> 十秒上手</p>
     <h2 id="guideTitle">沿着太阳，看见一年</h2>
-    <p class="guide-desc" id="guideDesc">太阳位于中心，地球沿黄道公转。左右拖动可环视轨道，点击节气刻度可切换地球受光位置；右上角「导览」会自动演示主要作品内容。</p>
+    <p class="guide-desc" id="guideDesc">太阳位于中心，地球沿黄道公转。左右拖动可环视轨道，点击节气刻度可切换地球受光位置与节气伴星；右上角「导览」会自动演示主要作品内容。</p>
     <ol class="guide-steps">
       <li><b>01</b><span><strong>拖动</strong>环视地球公转轨道</span></li>
       <li><b>02</b><span><strong>点击</strong>节气或「导览」</span></li>
@@ -139,6 +139,10 @@
     <div class="metric metric-wide">
       <dt>物候</dt>
       <dd id="mHou"></dd>
+    </div>
+    <div class="metric">
+      <dt>节气伴星 · 艺术映射</dt>
+      <dd id="mCompanion">水星</dd>
     </div>
   </dl>
 
@@ -462,6 +466,10 @@
         <p>释文属于依据古籍和通行资料整理的科普写作，不把现代整理冒充古籍原文；计算值与解释分别标注。</p>
       </section>
     </div>
+    <p class="companion-note reveal">
+      关于节气伴星：24 枚伴星均取自真实太阳系天体，但其与二十四节气的一一对应属于本作的艺术映射，
+      不表示古代节气传统或现代天文学中的既定关联。
+    </p>
   </div>
 </section>
 
